@@ -13,3 +13,12 @@ knitr::opts_chunk$set(echo = TRUE)
 suppressPackageStartupMessages(library(tidyverse))
 ```
 
+```{r world energy consumption dataset}
+# wec <-  read_csv("https://github.com/owid/energy-data/raw/master/owid-energy-data.csv")
+```
+```{r write wec as csv}
+
+write_csv(wec, "data/world_energy_consumption.csv")
+
+```
+
