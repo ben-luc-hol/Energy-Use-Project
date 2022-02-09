@@ -1,7 +1,7 @@
 ---
-title: "Energy Use and Economic Development Project"
+title: "Energy Use and Economic Development Project: Data Wrangling"
 author: "Ben Holden & Lizzy MacIntosh"
-date: "2022-"
+date: "2022-02-10"
 output: html_document
 ---
 
@@ -14,16 +14,24 @@ suppressPackageStartupMessages(library(tidyverse))
 ```
 
 ```{r world energy consumption dataset}
-# wec <-  read_csv("https://github.com/owid/energy-data/raw/master/owid-energy-data.csv")
-```
-```{r write wec as csv}
-
-write_csv(wec, "data/world_energy_consumption.csv")
 
 ```
 
 
 ```{r infant mortality rate dataset}
-inf_Mortality <-  read_delim("https://api.worldbank.org/v2/en/indicator/SP.DYN.IMRT.IN?downloadformat=csv", delim = "\")
+
+
+
+
+write_csv(terms_of_trade, "data/terms_of_trade.csv")
+```
+
+
+
+
+
+
+
+```{r}
 ```
 
