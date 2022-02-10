@@ -7,15 +7,31 @@ output:
   html_document: default
 ---
 
+# Intoduction: 
+It is becoming increasingly important to draw connections between the environment and human activities as the impact of the climate crisis is progressively more recognizable in our to day to day lives. 
+In this analysis, we will focus on the connection between social and economic indicators and energy usage across the world.
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+
 
 ```{r load packages, include = FALSE}
 suppressPackageStartupMessages(library(tidyverse))
 ```
 
+
+The first dataset we will use is the World Energy Consumption dataset. This dataset is a collection of key metrics maintained by Our World in Data and includes data on energy consumption (primary energy, per capita, and growth rates), energy mix, electricity mix and other relevant metrics. 
+
+We will focus on the following key variables in our analysis:
+
+
+
 ## Part 1: Importing and merging datasets:
+
+This section loads, tidies, and merges the datasets used in this analysis.
 
 ```{r import all datasets from GitHub, include = FALSE}
 
@@ -95,7 +111,9 @@ glimpse(wec_tidy)
 
 ```
 
-### Then: Tidy and conform the other datasets to prepare for joins:
+### Next we will tidy and conform the other datasets to prepare for joins:
+
+CO2 Emissions: This dataset is from The World Bank and provides us with CO2 emissions in metric tons per capita from 1960-2020. 
 
 ```{r tidy co2}
 #glimpse(co2_emissions)
@@ -110,6 +128,7 @@ co2_emissions%>%
 head(co2_tidy, 5)
 
 ```
+Fertility: This dataset is from The World Bank and provides us with the number of births per woman emissions from 1960-2019. Fertility is a useful measure of welfare becuase it indicates access to birth control and education on family planning.
 
 ```{r tidy fertility}
 #glimpse(fertility)
@@ -123,6 +142,9 @@ fertility%>%
 
   head(fertility_tidy, 5)
 ```
+
+Infant mortality: This dataset is from The World Bank and provides us with the number of infant deaths per 1000 births from 1960-2019. Infant Mortality Rate is a useful measure of welfare becuase indicates access to healthcare.
+
 ```{r tidy infant mortality}
 #glimpse(infant_mort)
 
@@ -135,6 +157,9 @@ infant_mort%>%
 
 head(infant_mort_tidy, 5)
 ```
+Literacy: This dataset is from The World Bank and provides us with the percent of people above the age of 15 in a given country who are literate from 1970-2020.
+
+
 ```{r tidy literacy}
 #glimpse(literacy)
 
@@ -147,6 +172,9 @@ glimpse(literacy)%>%
 
   head(literacy_tidy, 5)
 ```
+
+Life expectancy: This dataset is from The World Bank and provides us with the life expectancy at birth in a given country
+
 ```{r tidy life exp}
 #glimpse(life_exp)
 
@@ -160,6 +188,7 @@ glimpse(life_exp)%>%
   head(life_exp_tidy, 5)
 ```
 
+Poverty Rate: This dataset is from The World Bank and provides us with the share of people living on less than $1.90 a day from 1981-2019.
 
 ```{r tidy poverty}
 #glimpse(poverty)
@@ -175,6 +204,7 @@ head(poverty_tidy, 5)
   
 
 ```
+#### Merging all the datasets together
 
 ```{r monster merge}
 wec_tidy%>%
@@ -187,6 +217,7 @@ wec_tidy%>%
 glimpse(master)
 
 ```
+Next, we need to tidy the data once more before analysis:
 
 ```{r final tidy and write main df}
 master%>%
@@ -202,15 +233,22 @@ write_csv(World_Energy_Consumption_Main, "data/World_Energy_Consumption_Main.csv
 
 ## Part 2: Analysis
 
-Research Question:
+
+## Part 2: Analysis
+
+Research Question: How does energy usage and sources relate to social and economic indicators?
 
 
+First we'll look at general correlation between GDP per capita and share of primary energy of fossil fuel.
 
 ```{r}
-ggplot(World_Energy_Consumption_Main, aes(gdp_per_capita, fossil_share_energy, color = ()))+
+ggplot(World_Energy_Consumption_Main, aes(gdp_per_capita/1000, fossil_share_energy))+
   geom_point()+
   geom_jitter()+
-  geom_smooth(method = lm, se = FALSE)
+  geom_smooth(method = lm, se = FALSE)+
+  theme_bw()+
+  ylab("fossil fuels share of energy consumption")+
+  xlab("GDP per capita ($ thousand)")
 ```
 
 ```{r}
@@ -218,48 +256,348 @@ World_Energy_Consumption_Main%>%
   ggplot(aes(gdp_per_capita, energy_per_gdp))+
     geom_point()+
   geom_jitter()+
-  geom_smooth(method = lm, se = FALSE)
-
-
+  geom_smooth(method = loess, se = FALSE)+
+   theme_bw()+
+  ylab("energy consumption per unit of GDP")+
+  xlab("GDP per capita ($ thousand)")
 ```
+
+
+Now let's look at the complimentary plot. Here we'll be comparing GDP per capita and share of primary energy of "Low Carbon". _Note: Low Carbon is defined as the sum of primary energy from renewables and nuclear_
 
 ```{r}
 World_Energy_Consumption_Main%>%
-  ggplot(aes(poverty_rate_dollar_ninety, low_carbon_share_energy))+
-  geom_point()
+  ggplot(aes(gdp_per_capita/1000, low_carbon_share_energy))+
+  geom_point()+
+    theme_bw()+
+    geom_smooth(method = lm, se = FALSE)+
+  ylab(" low carbon share of energy consumption")+
+  xlab("GDP per capita ($ thousand)")
+```
+
+Now that we have seen that there is an association between energy source and GDP, we'll look at welfare measures in comparison to low carbon.
+
+Infant Mortality rate:
+```{r}
+World_Energy_Consumption_Main%>%
+  ggplot(aes(low_carbon_share_energy, infant_mortality_rate))+
+  geom_point()+
+  theme_bw()+
+  geom_smooth(method = lm, se = FALSE)+
+  ylim(0,110) +
+  xlab("Low carbon proportion of energy consumption") +
+  ylab("Infant mortality rate")
+```
+Literacy Rate:
+```{r}
+World_Energy_Consumption_Main%>%
+  ggplot(aes(low_carbon_share_energy, literacy_rate))+
+  geom_point()+
+  theme_bw()+
+  xlab("Low carbon proportion of energy consumption") +
+  ylab("literacy rate")+
+  geom_smooth(method = lm, se = FALSE)
+```
+Poverty Rate:
+```{r}
+World_Energy_Consumption_Main%>%
+  ggplot(aes(low_carbon_share_energy, poverty_rate_dollar_ninety))+
+  geom_point()+
+ theme_bw()+
+  xlab("Low carbon proportion of energy consumption") +
+  ylab("proportion of people living under $1.90 / day")+
+  geom_smooth(method = lm, se = FALSE)
+```
+
+We'll also look at the breakdown of several country's energy usage. Let's focus on the 3 countries with the highest and lowest nominal GDP rankings. 
+
+
+```{r setup for area chart, include = FALSE}
+yco <-  c("#4d9221",
+        "#7fbc41",
+        "#01665e",  
+        "#35978f",
+        "#80cdc1",
+        "#c7eae5",
+        "#8c510a", 
+        "#bf812d", 
+        "#dfc27d")
+
+y <-  c("hydro",
+        "solar",
+        "wind",  
+        "nuclear",
+        "biofuel",
+        "other_rnw",
+        "coal", 
+        "gas", 
+        "oil")
+
+
 ```
 
 
-
-
-```{r United States Electric Sources}
-x <-  c("hydro_share_elec",
-        "solar_share_elec",
-        "wind_share_elec", 
-        "nuclear_share_elec",
-        "biofuel_share_elec",
-        "other_renewables_share_elec_exc_biofuel",
-        "coal_share_elec", 
-        "gas_share_elec", 
-        "oil_share_elec")
-
-
-
-glimpse(World_Energy_Consumption_Main)
-
+```{r area chart, US}
 World_Energy_Consumption_Main%>%
   filter(year < 2019)%>%
   filter(country == "United States")%>%
   select(year, coal_share_elec , gas_share_elec, oil_share_elec, hydro_share_elec, solar_share_elec, wind_share_elec, nuclear_share_elec, 
   biofuel_share_elec,other_renewables_share_elec_exc_biofuel)%>%
-  pivot_longer(cols = coal_share_elec:other_renewables_share_elec_exc_biofuel, names_to = "elec_source", values_to = "percent_of_elec")%>%
-  mutate(fossil_fuel = ifelse(elec_source %in% fossil_fuels, "y", "n"))%>%
-ggplot(aes(year, percent_of_elec, fill = factor(elec_source, levels = rev(x))))+
-  geom_area(position = "stack")+
-  
-  
+  rename(coal = coal_share_elec, 
+         gas = gas_share_elec, 
+         oil = oil_share_elec, 
+         hydro = hydro_share_elec, 
+         solar = solar_share_elec, 
+         wind = wind_share_elec, 
+         nuclear = nuclear_share_elec, 
+         biofuel = biofuel_share_elec,
+         other_rnw = other_renewables_share_elec_exc_biofuel)%>%
+pivot_longer(cols = coal:other_rnw, names_to = "elec_source", values_to = "percent_of_elec")%>%
+ggplot(aes(year, percent_of_elec, fill = factor(elec_source, levels = rev(y))))+
+  geom_area(position = "fill")+
+  theme_classic()+
+  theme(legend.position = "right",
+        legend.title=element_blank())+
+  guides(color = guide_legend(nrow = 1),
+         shape = guide_legend(override.aes = list(size = 0.5)))+
+  labs(title = "Electricity Consumption by Source, United States")+
+  ylab("% of electricity consumption")+
+  xlab("")+
+  scale_fill_manual(values = rev(yco),
+                     labels = rev(y))+
+  scale_y_continuous(labels = scales::percent)+
+  scale_x_continuous(breaks = c(seq(from = 1990, to = 2020, by= 5)))
   
 
-    #  pivot_wider(names_from = "year", values_from = "percent_of_elec")%>%
 ```
+
+As seen above, the United States' electricity generation profile is moving away from dirtier fossil fuels.
+Do per capita carbon emissions reflect this trend?
+
+```{r}
+World_Energy_Consumption_Main%>%
+  filter(year < 2019)%>%
+  filter(country == "United States")%>%
+  select(year, co2_tons_per_capita)%>%
+  ggplot(aes(year, co2_tons_per_capita))+
+  geom_line()+
+  theme_bw()+
+  xlab("")+
+  ylab("CO2 emissions per capita, metric tons")
+```
+
+```{r}
+World_Energy_Consumption_Main%>%
+  filter(year < 2019)%>%
+  select(gdp_per_capita, co2_tons_per_capita)%>%
+  ggplot(aes(gdp_per_capita, co2_tons_per_capita))+
+  geom_point()+
+  theme_bw()+
+  xlab("gdp_per_capita")+
+  ylab("CO2 emissions per capita, metric tons")
+```
+
+
+```{r area chart China}
+World_Energy_Consumption_Main%>%
+  filter(year < 2019)%>%
+  filter(country == "China")%>%
+  select(year, coal_share_elec , gas_share_elec, oil_share_elec, hydro_share_elec, solar_share_elec, wind_share_elec, nuclear_share_elec, 
+  biofuel_share_elec,other_renewables_share_elec_exc_biofuel)%>%
+  rename(coal = coal_share_elec, 
+         gas = gas_share_elec, 
+         oil = oil_share_elec, 
+         hydro = hydro_share_elec, 
+         solar = solar_share_elec, 
+         wind = wind_share_elec, 
+         nuclear = nuclear_share_elec, 
+         biofuel = biofuel_share_elec,
+         other_rnw = other_renewables_share_elec_exc_biofuel)%>%
+pivot_longer(cols = coal:other_rnw, names_to = "elec_source", values_to = "percent_of_elec")%>%
+ggplot(aes(year, percent_of_elec, fill = factor(elec_source, levels = rev(y))))+
+  geom_area(position = "fill")+
+  theme_classic()+
+  theme(legend.position = "right",
+        legend.title=element_blank())+
+  guides(color = guide_legend(nrow = 1),
+         shape = guide_legend(override.aes = list(size = 0.5)))+
+  labs(title = "Electricity Consumption by Source, China")+
+  ylab("% of electricity consumption")+
+  xlab("")+
+  scale_fill_manual(values = rev(yco),
+                     labels = rev(y))+
+  scale_y_continuous(labels = scales::percent)+
+  scale_x_continuous(breaks = c(seq(from = 1990, to = 2020, by= 5)))
+  
+```
+
+```{r area chart india}
+
+World_Energy_Consumption_Main%>%
+  filter(year < 2019)%>%
+  filter(country == "India")%>%
+  select(year, coal_share_elec , gas_share_elec, oil_share_elec, hydro_share_elec, solar_share_elec, wind_share_elec, nuclear_share_elec, 
+  biofuel_share_elec,other_renewables_share_elec_exc_biofuel)%>%
+  rename(coal = coal_share_elec, 
+         gas = gas_share_elec, 
+         oil = oil_share_elec, 
+         hydro = hydro_share_elec, 
+         solar = solar_share_elec, 
+         wind = wind_share_elec, 
+         nuclear = nuclear_share_elec, 
+         biofuel = biofuel_share_elec,
+         other_rnw = other_renewables_share_elec_exc_biofuel)%>%
+pivot_longer(cols = coal:other_rnw, names_to = "elec_source", values_to = "percent_of_elec")%>%
+ggplot(aes(year, percent_of_elec, fill = factor(elec_source, levels = rev(y))))+
+  geom_area(position = "fill")+
+  theme_classic()+
+  theme(legend.position = "right",
+        legend.title=element_blank())+
+  guides(color = guide_legend(nrow = 1),
+         shape = guide_legend(override.aes = list(size = 0.5)))+
+  labs(title = "Electricity Consumption by Source, India")+
+  ylab("% of electricity consumption")+
+  xlab("")+
+  scale_fill_manual(values = rev(yco),
+                     labels = rev(y))+
+  scale_y_continuous(labels = scales::percent)+
+  scale_x_continuous(breaks = c(seq(from = 1990, to = 2020, by= 5)))
+
+```
+
+```{r smallest economies}
+
+World_Energy_Consumption_Main%>%
+  filter(year < 2019)%>%
+  filter(country == "Sao Tome and Principe")%>%
+  select(year, coal_share_elec , gas_share_elec, oil_share_elec, hydro_share_elec, solar_share_elec, wind_share_elec, nuclear_share_elec, 
+  biofuel_share_elec,other_renewables_share_elec_exc_biofuel)%>%
+  rename(coal = coal_share_elec, 
+         gas = gas_share_elec, 
+         oil = oil_share_elec, 
+         hydro = hydro_share_elec, 
+         solar = solar_share_elec, 
+         wind = wind_share_elec, 
+         nuclear = nuclear_share_elec, 
+         biofuel = biofuel_share_elec,
+         other_rnw = other_renewables_share_elec_exc_biofuel)%>%
+pivot_longer(cols = coal:other_rnw, names_to = "elec_source", values_to = "percent_of_elec")%>%
+ggplot(aes(year, percent_of_elec, fill = factor(elec_source, levels = rev(y))))+
+  geom_area(position = "fill")+
+  theme_classic()+
+  theme(legend.position = "right",
+        legend.title=element_blank())+
+  guides(color = guide_legend(nrow = 1),
+         shape = guide_legend(override.aes = list(size = 0.5)))+
+  labs(title = "Electricity Consumption by Source, Sao Tome and Principe")+
+  ylab("% of electricity consumption")+
+  xlab("")+
+  scale_fill_manual(values = rev(yco),
+                     labels = rev(y))+
+  scale_y_continuous(labels = scales::percent)+
+  scale_x_continuous(breaks = c(seq(from = 1990, to = 2020, by= 5)))
+
+#######
+
+World_Energy_Consumption_Main%>%
+  filter(year < 2019)%>%
+  filter(country == "Liberia")%>%
+  select(year, coal_share_elec , gas_share_elec, oil_share_elec, hydro_share_elec, solar_share_elec, wind_share_elec, nuclear_share_elec, 
+  biofuel_share_elec,other_renewables_share_elec_exc_biofuel)%>%
+  rename(coal = coal_share_elec, 
+         gas = gas_share_elec, 
+         oil = oil_share_elec, 
+         hydro = hydro_share_elec, 
+         solar = solar_share_elec, 
+         wind = wind_share_elec, 
+         nuclear = nuclear_share_elec, 
+         biofuel = biofuel_share_elec,
+         other_rnw = other_renewables_share_elec_exc_biofuel)%>%
+pivot_longer(cols = coal:other_rnw, names_to = "elec_source", values_to = "percent_of_elec")%>%
+ggplot(aes(year, percent_of_elec, fill = factor(elec_source, levels = rev(y))))+
+  geom_area(position = "fill")+
+  theme_classic()+
+  theme(legend.position = "right",
+        legend.title=element_blank())+
+  guides(color = guide_legend(nrow = 1),
+         shape = guide_legend(override.aes = list(size = 0.5)))+
+  labs(title = "Electricity Consumption by Source, Liberia")+
+  ylab("% of electricity consumption")+
+  xlab("")+
+  scale_fill_manual(values = rev(yco),
+                     labels = rev(y))+
+  scale_y_continuous(labels = scales::percent)+
+  scale_x_continuous(breaks = c(seq(from = 1990, to = 2020, by= 5)))
+
+
+#######
+
+World_Energy_Consumption_Main%>%
+  filter(year < 2019)%>%
+  filter(country == "Comoros")%>%
+  select(year, coal_share_elec , gas_share_elec, oil_share_elec, hydro_share_elec, solar_share_elec, wind_share_elec, nuclear_share_elec, 
+  biofuel_share_elec,other_renewables_share_elec_exc_biofuel)%>%
+  rename(coal = coal_share_elec, 
+         gas = gas_share_elec, 
+         oil = oil_share_elec, 
+         hydro = hydro_share_elec, 
+         solar = solar_share_elec, 
+         wind = wind_share_elec, 
+         nuclear = nuclear_share_elec, 
+         biofuel = biofuel_share_elec,
+         other_rnw = other_renewables_share_elec_exc_biofuel)%>%
+pivot_longer(cols = coal:other_rnw, names_to = "elec_source", values_to = "percent_of_elec")%>%
+ggplot(aes(year, percent_of_elec, fill = factor(elec_source, levels = rev(y))))+
+  geom_area(position = "fill")+
+  theme_classic()+
+  theme(legend.position = "right",
+        legend.title=element_blank())+
+  guides(color = guide_legend(nrow = 1),
+         shape = guide_legend(override.aes = list(size = 0.5)))+
+  labs(title = "Electricity Consumption by Source, Comoros")+
+  ylab("% of electricity consumption")+
+  xlab("")+
+  scale_fill_manual(values = rev(yco),
+                     labels = rev(y))+
+  scale_y_continuous(labels = scales::percent)+
+  scale_x_continuous(breaks = c(seq(from = 1990, to = 2020, by= 5)))
+
+
+```
+
+
+
+
+# Conclusion
+- Share Fossil Fuels and GDP per capita: There is clear correlation between the primary share of fossil fuels in a country and GDP. As shown in the table above, countries with lower GDP rely more heavily on fossil fuels as an energy source than countries with higher GDP. This highlights the challenge that developing countries face of transitioning from dirtier forms of energy at an earlier stage of industrialization than their western counterparts had to.
+
+- Share Low Carbon and GDP per capita: This graph should be thought of as the compliment to the one before. There is clear correlation between the primary share of low carbon in a country and GDP. As shown in the table above, countries with lower GDP rely less heavily on fossil fuels as an energy source than countries with higher GDP.
+
+- Welfare indicators and renewable energy:
+  - Infant Mortality Rate: Countries with a lower share of energy from low carbon have a higher rate of infant mortality.
+  
+  - Literacy Rate: Countries with a lower share of energy from low carbon have a lower literacy rate than countries that rely more heavily on low carbon energy.
+  
+  - Poverty Rate: Countries with a lower share of energy from low carbon have a higher poverty rate than countries that rely more heavily on low carbon energy.
+  
+- GDP and Electricity Usage:
+  - Top 3 GDP Countries: A mixture of several different energy sources. Heavy use of coal as well as hydro, nuclear, oil and other renewable energy sources.
+  -The United States has undergone 
+  - Bottom 3 GDP Countries: Stark contrast from the previous example. Theses countries are very reliant on a single electricity source - oil. Sao Tome and Principe and Comoros use a little bit of hydro power as well. 
+  
+There is definitely a relationship between energy usage and social and economic indicators. From this analysis it seems that there are significant benefits both in terms of social and economic well being for countries who diversify their energy usage and invest in renewable energy. With that being said, the countries with the highest GDP rankings do not exclusively use renewable energy sources and therefore, it is fair to assume that there are benefits to using cheaper, more polluting energy sources as well. 
+
+### Sources of bias
+We believe that climate change is one of the most pressing issues of our time. We recognize that this is a potential source for bias and I am likely to favor renewable energy sources and other measures that we believe will help slow this crisis. Another potential bias is the expectation from being familiar with economics, that wealthier countries tend to diversify their energy sources and might therefore
+appear cleaner, even though the total level of energy consumption is significantly higher than that of developing nations.
+
+
+
+### System info
+```{r}
+sessionInfo()
+```
+
+
+
 
