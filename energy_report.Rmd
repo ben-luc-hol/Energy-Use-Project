@@ -1,5 +1,5 @@
 ---
-title: "Energy Use and Economic Development Project: Data Wrangling"
+title: "Energy Use and Economic Development Project: Preprocessing and Data Wrangling"
 author: "Ben Holden & Lizzy MacIntosh"
 date: "2022-02-10"
 output: html_document
@@ -18,12 +18,29 @@ suppressPackageStartupMessages(library(tidyverse))
 ```
 
 
-```{r infant mortality rate dataset}
+```{r import all datasets from GitHub}
 
+# world energy consumption dataset
 
+wec <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/blob/main/data/world_energy_consumption.csv")
 
+#CO2 emissions (metric tons per capita per year) - World Bank, 2022
+co2_emissions <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/blob/main/data/CO2_emissions.csv")
 
-write_csv(terms_of_trade, "data/terms_of_trade.csv")
+#fertility
+fertility <- read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/blob/main/data/fertility_rate.csv")
+
+#infant mortality
+infant_mort <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/blob/main/data/infant_mortality.csv")
+
+#life expectancy at birth
+life_exp <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/blob/main/data/life_expectancy.csv")
+
+#literacy
+literacy <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/blob/main/data/literacy.csv")
+
+terms_of_trade <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/blob/main/data/terms_of_trade.csv")
+
 ```
 
 
