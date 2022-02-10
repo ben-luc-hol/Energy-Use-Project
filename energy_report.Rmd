@@ -43,8 +43,10 @@ terms_of_trade <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/r
 ```
 
 
-
+### First, tidy and select variables from the main dataset used -- World Energy Consumption from Our World in Data
 ```{r tidy wec}
+#glimpse(wec)
+
 wec%>%
   select( #----- Key variables:  --------------------------------------------
           iso_code, #ISO country code
@@ -82,8 +84,12 @@ wec%>%
 glimpse(wec_tidy)
 
 ```
+
+### Then: Tidy and conform the other datasets to prepare for joins:
+
 ```{r tidy co2}
-#      ------------- Pivoting years and selecting obsv. starting with year 1991: ----------------------------------------------
+#glimpse(co2_emissions)
+
 co2_emissions%>%
   pivot_longer(cols = `1960`:`2020`, names_to = "year", values_to = "co2_tons_per_capita")%>%
   select(`Country Code`, `Country Name`, year, co2_tons_per_capita)%>%
@@ -94,8 +100,9 @@ head(co2_tidy, 5)
 ```
 
 ```{r tidy fertility}
-#      ------------- Pivoting years and selecting obsv. starting with year 1991: ----------------------------------------------
-glimpse(fertility)%>%
+#glimpse(fertility)
+
+fertility%>%
   pivot_longer(cols = `1960`:`2020`, names_to = "year", values_to = "fertility_rate")%>%
   select(`Country Code`, `Country Name`, year, fertility_rate)%>%
   filter(year >= 1991) -> fertility_tidy
@@ -103,8 +110,26 @@ glimpse(fertility)%>%
   head(fertility_tidy, 5)
 ```
 ```{r tidy infant mortality}
+#glimpse(infant_mort)
 
+infant_mort%>%
+  pivot_longer(cols = `1960`:`2020`, names_to = "year", values_to = "infant_mortality_rate")%>%
+  select(`Country Code`, `Country Name`, year, infant_mortality_rate)%>%
+  filter(year >= 1991) -> infant_mort_tidy
 
+head(infant_mort_tidy, 5)
+```
+```{r tidy literacy}
+#glimpse(literacy)
+
+glimpse(literacy)%>%
+  pivot_longer(cols = `1960`:`2020`, names_to = "year", values_to = "literacy_rate")%>%
+  select(`Country Code`, `Country Name`, year, literacy_rate)%>%
+  filter(year >= 1991) -> literacy_tidy
+
+  head(literacy_tidy, 5)
+```
+```{r tidy terms of trade}
 
 ```
 
