@@ -54,24 +54,35 @@ wec%>%
           year,    #year of observation
           population, #population total
           gdp, #  inflation-adjusted real GDP
-          energy_per_gdp, # energy consumption per unit of GDP. This is measured in kilowatt-hours per 2011 international-$.
-          energy_per_capita, # Primary energy consumption per capita, measured in kilowatt-hours per year	
-          energy_cons_change_pct, #Annual percentage change in primary energy consumption	
-#      ------------- Fossil fuels: -----------------------------------------------
+          energy_per_gdp, # energy consumption per unit of GDP, kwh, 2011 dollars
+          energy_per_capita, # Primary energy consumption per capita, kwh/year
+          energy_cons_change_pct, #Annual pctage change in primary energy consumption	
+#      ------------- Energy  -----------------------------------------------
           fossil_cons_change_pct, #Annual percentage change in fossil fuel consumption	
           fossil_share_energy, #Share of primary energy consumption that comes from fossil fuels	
-          biofuel_share_energy, #Share of primary energy consumption that comes from biofuels	
           coal_share_energy, #Share of primary energy consumption that comes from coal	
           gas_share_energy, #Share of primary energy consumption that comes from gas	
           oil_share_energy, #	Share of primary energy consumption that comes from oil	
-#      ------------- Low carbon (renewables and nuclear): -----------------------------------------------
           low_carbon_cons_change_pct, #Annual percentage change in low-carbon energy consumption	
-          low_carbon_share_energy, #Share of primary energy consumption that comes from low-carbon sources (sum of primary energy from renewables and nuclear)		
           hydro_share_energy,	#Share of primary energy consumption that comes from hydropower	
           solar_share_energy, #Share of electricity consumption that comes from solar	
           wind_share_energy, # Share of primary energy consumption that comes from wind	
           nuclear_share_energy, #Share of primary energy consumption that comes from other renewables	
-          other_renewables_share_energy #Share of primary energy consumption that comes from other renewables
+          biofuel_share_energy, #Share of primary energy consumption that comes from biofuels	
+          other_renewables_share_energy, #Share of primary energy consumption that comes from other renewables
+          low_carbon_share_energy, #Share of primary energy consumption that comes from low-carbon sources (sum of primary energy from renewables and nuclear)		
+#      ------------- Electricity -----------------------------------------------
+          coal_share_elec, #Share of electricity consumption that comes from coal
+          gas_share_elec, #Share of electricity consumption that comes from gas	
+          oil_share_elec, #Share of electricity consumption that comes from oil	
+          fossil_share_elec, #Share of electricity consumption that comes from fossil fuels (coal, oil and gas combined)	
+          hydro_share_elec, #Share of electricity consumption that comes from hydropower	
+          solar_share_elec, #Share of electricity consumption that comes from solar	
+          wind_share_elec, #Share of electricity consumption that comes from wind	
+          nuclear_share_elec, #Share of electricity consumption that comes from nuclear power	
+          biofuel_share_elec, #Share of electricity consumption that comes from biofuels	
+          other_renewables_share_elec_exc_biofuel,	#Share of electricity consumption that comes from other renewables excluding biofuels	
+          low_carbon_share_elec #Share of electricity consumption that comes from low-carbon sources. This is the sum of electricity from renewables and nuclear		
         ) %>%
 #      ------------- Computing additional economic variables: ----------------------------------------------
   mutate(gdp_per_capita = (gdp/population),
@@ -188,23 +199,53 @@ write_csv(World_Energy_Consumption_Main, "data/World_Energy_Consumption_Main.csv
 ```
 
 
-# world energy consumption dataset
-wec <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/world_energy_consumption.csv")
 
-#CO2 emissions (metric tons per capita per year) - World Bank, 2022
-co2_emissions <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/CO2_emissions.csv")
 
-#fertility
-fertility <- read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/fertility_rate.csv")
 
-#infant mortality
-infant_mort <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/infant_mortality.csv")
+## Part 2: Analysis
 
-#life expectancy at birth
-life_exp <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/life_exp.csv")
+Research Question:
 
-#literacy
-literacy <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/literacy.csv")
 
-#poverty
-poverty <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/poverty.csv")
+
+```{r}
+ggplot(World_Energy_Consumption_Main, aes(gdp_per_capita, fossil_share_energy, color = ()))+
+  geom_point()+
+  geom_jitter()+
+  geom_smooth(method = lm, se = FALSE)
+```
+
+```{r}
+World_Energy_Consumption_Main%>%
+  ggplot(aes(gdp_per_capita, energy_per_gdp))+
+    geom_point()+
+  geom_jitter()+
+  geom_smooth(method = lm, se = FALSE)
+
+
+```
+
+```{r}
+World_Energy_Consumption_Main%>%
+  ggplot(aes(poverty_rate_dollar_ninety, low_carbon_share_energy))+
+  geom_point()
+```
+
+
+
+
+```{r United States Electric Sources}
+glimpse(World_Energy_Consumption_Main)
+World_Energy_Consumption_Main%>%
+  filter(year < 2019)%>%
+  filter(country == "United States")%>%
+  select(year, coal_share_elec , gas_share_elec, oil_share_elec, hydro_share_elec, solar_share_elec, wind_share_elec, nuclear_share_elec, 
+  biofuel_share_elec,other_renewables_share_elec_exc_biofuel)%>%
+  pivot_longer(cols = coal_share_elec:other_renewables_share_elec_exc_biofuel, names_to = "elec_source", values_to = "percent_of_elec")%>%
+ggplot(aes(year, percent_of_elec, fill = elec_source))+
+  geom_area(position = "stack")
+  
+
+    #  pivot_wider(names_from = "year", values_from = "percent_of_elec")%>%
+```
+
