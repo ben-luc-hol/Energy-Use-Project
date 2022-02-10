@@ -1,5 +1,5 @@
 ---
-title: 'Energy Use and Economic Development Project: Preprocessing and Data Wrangling'
+title: 'Energy Use and Economic Development Project'
 author: "Ben Holden & Lizzy MacIntosh"
 date: '2022-02-10'
 output:
@@ -431,6 +431,22 @@ ggplot(aes(year, percent_of_elec, fill = factor(elec_source, levels = rev(y))))+
   
 ```
 
+```{r}
+World_Energy_Consumption_Main%>%
+  filter(year < 2019)%>%
+  filter(country == "China")%>%
+  select(year, gdp_per_capita)%>%
+  ggplot(aes(year, gdp_per_capita/1000))+
+  geom_line()+
+  theme_bw()+
+  xlab("")+
+  ylab("GDP per capita, $1k")
+```
+
+
+
+
+
 ```{r area chart india}
 
 World_Energy_Consumption_Main%>%
@@ -464,6 +480,20 @@ ggplot(aes(year, percent_of_elec, fill = factor(elec_source, levels = rev(y))))+
   scale_x_continuous(breaks = c(seq(from = 1990, to = 2020, by= 5)))
 
 ```
+```{r}
+World_Energy_Consumption_Main%>%
+  filter(year < 2019)%>%
+  filter(country == "India")%>%
+  select(year, poverty_rate_dollar_ninety)%>%
+  ggplot(aes(year, poverty_rate_dollar_ninety))+
+  geom_line()+
+  theme_bw()+
+  xlab("")+
+  ylab("Share of population subsisting on <$1.90 / day")
+```
+
+
+
 
 ```{r smallest economies}
 
@@ -598,6 +628,9 @@ appear cleaner, even though the total level of energy consumption is significant
 sessionInfo()
 ```
 
+```{r}
+glimpse(World_Energy_Consumption_Main)
+```
 
 
 
