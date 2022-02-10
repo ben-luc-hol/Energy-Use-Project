@@ -1,8 +1,10 @@
 ---
-title: "Energy Use and Economic Development Project: Preprocessing and Data Wrangling"
+title: 'Energy Use and Economic Development Project: Preprocessing and Data Wrangling'
 author: "Ben Holden & Lizzy MacIntosh"
-date: "2022-02-10"
-output: html_document
+date: '2022-02-10'
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -13,42 +15,96 @@ knitr::opts_chunk$set(echo = TRUE)
 suppressPackageStartupMessages(library(tidyverse))
 ```
 
-```{r world energy consumption dataset}
+## Part 1: Importing and merging datasets:
 
-```
-
-
-```{r import all datasets from GitHub}
+```{r import all datasets from GitHub, include = FALSE}
 
 # world energy consumption dataset
-
-wec <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/blob/main/data/world_energy_consumption.csv")
+wec <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/world_energy_consumption.csv")
 
 #CO2 emissions (metric tons per capita per year) - World Bank, 2022
-co2_emissions <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/blob/main/data/CO2_emissions.csv")
+co2_emissions <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/CO2_emissions.csv")
 
 #fertility
-fertility <- read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/blob/main/data/fertility_rate.csv")
+fertility <- read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/fertility_rate.csv")
 
 #infant mortality
-infant_mort <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/blob/main/data/infant_mortality.csv")
+infant_mort <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/infant_mortality.csv")
 
 #life expectancy at birth
-life_exp <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/blob/main/data/life_expectancy.csv")
+life_exp <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/life_expectancy.csv")
 
 #literacy
-literacy <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/blob/main/data/literacy.csv")
+literacy <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/literacy.csv")
 
-terms_of_trade <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/blob/main/data/terms_of_trade.csv")
+#terms of trade
+terms_of_trade <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/terms_of_trade.csv")
 
 ```
 
 
 
+```{r tidy wec}
+wec%>%
+  select( #----- Key variables:  --------------------------------------------
+          iso_code, #ISO country code
+          country, #country
+          year,    #year of observation
+          population, #population total
+          gdp, #  inflation-adjusted real GDP
+          energy_per_gdp, # energy consumption per unit of GDP. This is measured in kilowatt-hours per 2011 international-$.
+          energy_per_capita, # Primary energy consumption per capita, measured in kilowatt-hours per year	
+          energy_cons_change_pct, #Annual percentage change in primary energy consumption	
+#      ------------- Fossil fuels: -----------------------------------------------
+          fossil_cons_change_pct, #Annual percentage change in fossil fuel consumption	
+          fossil_share_energy, #Share of primary energy consumption that comes from fossil fuels	
+          biofuel_share_energy, #Share of primary energy consumption that comes from biofuels	
+          coal_share_energy, #Share of primary energy consumption that comes from coal	
+          gas_share_energy, #Share of primary energy consumption that comes from gas	
+          oil_share_energy, #	Share of primary energy consumption that comes from oil	
+#      ------------- Low carbon (renewables and nuclear): -----------------------------------------------
+          low_carbon_cons_change_pct, #Annual percentage change in low-carbon energy consumption	
+          low_carbon_share_energy, #Share of primary energy consumption that comes from low-carbon sources (sum of primary energy from renewables and nuclear)		
+          hydro_share_energy,	#Share of primary energy consumption that comes from hydropower	
+          solar_share_energy, #Share of electricity consumption that comes from solar	
+          wind_share_energy, # Share of primary energy consumption that comes from wind	
+          nuclear_share_energy, #Share of primary energy consumption that comes from other renewables	
+          other_renewables_share_energy #Share of primary energy consumption that comes from other renewables
+        ) %>%
+#      ------------- Computing additional economic variables: ----------------------------------------------
+  mutate(gdp_per_capita = (gdp/population),
+         gdp_per_capita_growth = (gdp_per_capita-lag(gdp_per_capita))/lag(gdp_per_capita))%>% #creating a GDP per capita variable
+  relocate(gdp_per_capita, .before = energy_per_capita)%>% #relocating variables
+  relocate(gdp_per_capita_growth, .after = gdp_per_capita)%>%
+#      ------------- Selecting years from 1991 and onwards: -----------------------------------------------
+    filter(year >= 1991) -> wec_tidy
+
+glimpse(wec_tidy)
+
+```
+```{r tidy co2}
+#      ------------- Pivoting years and selecting obsv. starting with year 1991: ----------------------------------------------
+co2_emissions%>%
+  pivot_longer(cols = `1960`:`2020`, names_to = "year", values_to = "co2_tons_per_capita")%>%
+  select(`Country Code`, `Country Name`, year, co2_tons_per_capita)%>%
+  filter(year >= 1991 ) -> co2_tidy
+
+head(co2_tidy, 5)
+
+```
+
+```{r tidy fertility}
+#      ------------- Pivoting years and selecting obsv. starting with year 1991: ----------------------------------------------
+glimpse(fertility)%>%
+  pivot_longer(cols = `1960`:`2020`, names_to = "year", values_to = "fertility_rate")%>%
+  select(`Country Code`, `Country Name`, year, fertility_rate)%>%
+  filter(year >= 1991) -> fertility_tidy
+
+  head(fertility_tidy, 5)
+```
+```{r tidy infant mortality}
 
 
 
-
-```{r}
 ```
 
