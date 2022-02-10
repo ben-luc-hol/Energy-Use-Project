@@ -178,11 +178,11 @@ head(poverty_tidy, 5)
 
 ```{r monster merge}
 wec_tidy%>%
-  inner_join( co2_tidy, by = c("iso_code", "year", "country"))%>%
-   inner_join(fertility_tidy, by = c("iso_code", "year", "country"))%>%
-    inner_join(infant_mort_tidy, by = c("iso_code", "year", "country")) %>%
-     inner_join(life_exp_tidy, by = c("iso_code", "year", "country"))%>%
-      inner_join(literacy_tidy, by = c("iso_code", "year", "country")) -> master
+  left_join( co2_tidy, by = c("iso_code", "year", "country"))%>%
+  left_join(fertility_tidy, by = c("iso_code", "year", "country"))%>%
+   left_join(infant_mort_tidy, by = c("iso_code", "year", "country")) %>%
+   left_join(life_exp_tidy, by = c("iso_code", "year", "country"))%>%
+    left_join(literacy_tidy, by = c("iso_code", "year", "country")) -> master
 
 glimpse(master)
 
@@ -197,8 +197,6 @@ master%>%
 write_csv(World_Energy_Consumption_Main, "data/World_Energy_Consumption_Main.csv")
 
 ```
-
-
 
 
 
@@ -235,15 +233,31 @@ World_Energy_Consumption_Main%>%
 
 
 ```{r United States Electric Sources}
+x <-  c("hydro_share_elec",
+        "solar_share_elec",
+        "wind_share_elec", 
+        "nuclear_share_elec",
+        "biofuel_share_elec",
+        "other_renewables_share_elec_exc_biofuel",
+        "coal_share_elec", 
+        "gas_share_elec", 
+        "oil_share_elec")
+
+
+
 glimpse(World_Energy_Consumption_Main)
+
 World_Energy_Consumption_Main%>%
   filter(year < 2019)%>%
   filter(country == "United States")%>%
   select(year, coal_share_elec , gas_share_elec, oil_share_elec, hydro_share_elec, solar_share_elec, wind_share_elec, nuclear_share_elec, 
   biofuel_share_elec,other_renewables_share_elec_exc_biofuel)%>%
   pivot_longer(cols = coal_share_elec:other_renewables_share_elec_exc_biofuel, names_to = "elec_source", values_to = "percent_of_elec")%>%
-ggplot(aes(year, percent_of_elec, fill = elec_source))+
-  geom_area(position = "stack")
+  mutate(fossil_fuel = ifelse(elec_source %in% fossil_fuels, "y", "n"))%>%
+ggplot(aes(year, percent_of_elec, fill = factor(elec_source, levels = rev(x))))+
+  geom_area(position = "stack")+
+  
+  
   
 
     #  pivot_wider(names_from = "year", values_from = "percent_of_elec")%>%
