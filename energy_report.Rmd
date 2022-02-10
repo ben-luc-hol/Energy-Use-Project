@@ -32,13 +32,13 @@ fertility <- read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/mai
 infant_mort <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/infant_mortality.csv")
 
 #life expectancy at birth
-life_exp <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/life_expectancy.csv")
+life_exp <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/life_exp.csv")
 
 #literacy
 literacy <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/literacy.csv")
 
-#terms of trade
-terms_of_trade <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/terms_of_trade.csv")
+#poverty
+poverty <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/poverty.csv")
 
 ```
 
@@ -78,8 +78,7 @@ wec%>%
          gdp_per_capita_growth = (gdp_per_capita-lag(gdp_per_capita))/lag(gdp_per_capita))%>% #creating a GDP per capita variable
   relocate(gdp_per_capita, .before = energy_per_capita)%>% #relocating variables
   relocate(gdp_per_capita_growth, .after = gdp_per_capita)%>%
-#      ------------- Selecting years from 1991 and onwards: -----------------------------------------------
-    filter(year >= 1991) -> wec_tidy
+  filter(year >= 1960) -> wec_tidy
 
 glimpse(wec_tidy)
 
@@ -93,7 +92,9 @@ glimpse(wec_tidy)
 co2_emissions%>%
   pivot_longer(cols = `1960`:`2020`, names_to = "year", values_to = "co2_tons_per_capita")%>%
   select(`Country Code`, `Country Name`, year, co2_tons_per_capita)%>%
-  filter(year >= 1991 ) -> co2_tidy
+  rename(iso_code = `Country Code`,
+         country = `Country Name`)%>%
+  mutate(year = as.numeric(year)) -> co2_tidy
 
 head(co2_tidy, 5)
 
@@ -105,7 +106,9 @@ head(co2_tidy, 5)
 fertility%>%
   pivot_longer(cols = `1960`:`2020`, names_to = "year", values_to = "fertility_rate")%>%
   select(`Country Code`, `Country Name`, year, fertility_rate)%>%
-  filter(year >= 1991) -> fertility_tidy
+  rename(iso_code = `Country Code`,
+         country = `Country Name`)%>%
+    mutate(year = as.numeric(year)) -> fertility_tidy
 
   head(fertility_tidy, 5)
 ```
@@ -115,7 +118,9 @@ fertility%>%
 infant_mort%>%
   pivot_longer(cols = `1960`:`2020`, names_to = "year", values_to = "infant_mortality_rate")%>%
   select(`Country Code`, `Country Name`, year, infant_mortality_rate)%>%
-  filter(year >= 1991) -> infant_mort_tidy
+  rename(iso_code = `Country Code`,
+         country = `Country Name`)%>%
+    mutate(year = as.numeric(year)) -> infant_mort_tidy
 
 head(infant_mort_tidy, 5)
 ```
@@ -125,11 +130,81 @@ head(infant_mort_tidy, 5)
 glimpse(literacy)%>%
   pivot_longer(cols = `1960`:`2020`, names_to = "year", values_to = "literacy_rate")%>%
   select(`Country Code`, `Country Name`, year, literacy_rate)%>%
-  filter(year >= 1991) -> literacy_tidy
+  rename(iso_code = `Country Code`,
+         country = `Country Name`)%>%
+    mutate(year = as.numeric(year)) -> literacy_tidy
 
   head(literacy_tidy, 5)
 ```
-```{r tidy terms of trade}
+```{r tidy life exp}
+#glimpse(life_exp)
+
+glimpse(life_exp)%>%
+  pivot_longer(cols = `1960`:`2020`, names_to = "year", values_to = "life_expectancy")%>%
+  select(`Country Code`, `Country Name`, year, life_expectancy)%>%
+  rename(iso_code = `Country Code`,
+         country = `Country Name`)%>%
+    mutate(year = as.numeric(year)) -> life_exp_tidy
+
+  head(life_exp_tidy, 5)
+```
+
+
+```{r tidy poverty}
+#glimpse(poverty)
+
+poverty%>%
+  select(Entity, Code, Year, `$1.90 per day - share of population below poverty line`)%>%
+  rename(poverty_rate_dollar_ninety = `$1.90 per day - share of population below poverty line`,
+         year = Year,
+         country = Entity,
+         iso_code = Code) -> poverty_tidy
+
+head(poverty_tidy, 5)
+  
 
 ```
 
+```{r monster merge}
+wec_tidy%>%
+  inner_join( co2_tidy, by = c("iso_code", "year", "country"))%>%
+   inner_join(fertility_tidy, by = c("iso_code", "year", "country"))%>%
+    inner_join(infant_mort_tidy, by = c("iso_code", "year", "country")) %>%
+     inner_join(life_exp_tidy, by = c("iso_code", "year", "country"))%>%
+      inner_join(literacy_tidy, by = c("iso_code", "year", "country")) -> master
+
+glimpse(master)
+
+```
+
+```{r final tidy and write main df}
+master%>%
+  filter(year >= 1991)%>%
+  inner_join(poverty_tidy, by = c("iso_code", "year", "country" ))%>%
+  relocate((co2_tons_per_capita:poverty_rate_dollar_ninety), .before = gdp) -> World_Energy_Consumption_Main
+
+write_csv(World_Energy_Consumption_Main, "data/World_Energy_Consumption_Main.csv")
+
+```
+
+
+# world energy consumption dataset
+wec <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/world_energy_consumption.csv")
+
+#CO2 emissions (metric tons per capita per year) - World Bank, 2022
+co2_emissions <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/CO2_emissions.csv")
+
+#fertility
+fertility <- read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/fertility_rate.csv")
+
+#infant mortality
+infant_mort <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/infant_mortality.csv")
+
+#life expectancy at birth
+life_exp <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/life_exp.csv")
+
+#literacy
+literacy <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/literacy.csv")
+
+#poverty
+poverty <-  read_csv("https://github.com/ben-luc-hol/Energy-Use-Project/raw/main/data/poverty.csv")
